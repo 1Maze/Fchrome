@@ -117,5 +117,3 @@
     - #### 作者v: lenganlan
 
 - # 感谢支持!!
-
-![screenshot](imgs/wx_pay.jpg)
