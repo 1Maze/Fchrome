@@ -4,8 +4,8 @@ dtavm.proxy_start = function proxy_start() {
         proxy_map: {},
         iframe_proxy_map: {},
     }
-    rawlog = console.log
-    dtavm.log = rawlog
+    dtavm.rawlog = console.log
+    dtavm.log = dtavm.rawlog
     delete rawlog
         // 保护伪造函数toString
         ; (() => {
@@ -29,12 +29,7 @@ dtavm.proxy_start = function proxy_start() {
                 set_native(func, myFunction_toString_symbol, `function ${name || func.name || ''}() { [native code] }`)
             }
         }).call(this);
-    for (let key in Object.getOwnPropertyDescriptors(console)) {
-        if (typeof console[key] == "function") {
-            console[key] = function () { }
-            dtavm.func_set_native(console[key], key)
-        }
-    }
+
     dtavm.proxy = function (obj, objname, type) {
         function getSubstrings(parts) {
             const results = [];
@@ -115,12 +110,18 @@ dtavm.proxy_start = function proxy_start() {
                     if (this.target_obj) {
                         thisArg = this.target_obj
                     }
-                    let result = Reflect.apply(target, thisArg, argArray)
+                    try{
+                        var result = Reflect.apply(target, thisArg, argArray)
+                    }catch(e){
+                        dtavm.log(`[${WatchName}] apply function name is [${target.name}], argArray is `, argArray, `error is `, e);
+                        throw e;
+                    }
+                    
                     if (target.name !== "toString") {
                         if (WatchName === "window.console") {
                         }
                         else if (!target.name) {
-                            dtavm.log(`[${WatchName}] apply not name function, argArray is `, argArray, `result is `, data);
+                            dtavm.log(`[${WatchName}] apply not name function, argArray is `, argArray, `result is `, result);
                         }
                         else if (result instanceof Promise) {
                             result.then((data) => {
@@ -135,7 +136,12 @@ dtavm.proxy_start = function proxy_start() {
                     return result
                 },
                 construct(target, argArray, newTarget) {
-                    var result = Reflect.construct(target, argArray, newTarget)
+                    try{
+                        var result = Reflect.construct(target, argArray, newTarget)
+                    }catch(e){
+                        dtavm.log(`[${WatchName}] construct function name is [${target.name}], argArray is `, argArray, `error is `, e);
+                        throw e;
+                    }
                     dtavm.log(`[${WatchName}] construct function name is [${target.name}], argArray is `, argArray, `result is `, result);
                     return result;
                 }
@@ -165,11 +171,11 @@ dtavm.proxy_start = function proxy_start() {
                     //     return result
                     // }
                     // // 确保 document.location == window.location = true
-                    // if ((WatchName === "window" || WatchName === "document") && propKey === "location"){
-                    //     result = dtavm.proxy_map["location"]
-                    //     dtavm.log(`[${WatchName}] getting propKey is [`, propKey, `], result is [`, result, `]`);
-                    //     return result
-                    // }
+                    if ((WatchName === "window" || WatchName === "document") && propKey === "location"){
+                        result = dtavm.proxy_map["location"]
+                        dtavm.log(`[${WatchName}] getting propKey is [`, propKey, `], result is [`, result, `]`);
+                        return result
+                    }
                     result = target[propKey]
                     if (result instanceof Object) {
                         if (typeof result === "function") {
@@ -261,189 +267,6 @@ dtavm.proxy_start = function proxy_start() {
         }
         return check_proxy(objname, obj, getObjhandler(objname));
     }
-
-    dtavm.proxy_map = {
-        window: dtavm.proxy(window_jyl, "window"),
-        screen: dtavm.proxy(screen_jyl, "screen"),
-        performance: dtavm.proxy(performance_jyl, "performance"),
-        navigator: dtavm.proxy(navigator_jyl, "navigator"),
-        history: dtavm.proxy(history_jyl, "history"),
-        document: dtavm.proxy(document_jyl, "document"),
-        navigator: dtavm.proxy(navigator_jyl, "navigator"),
-        history: dtavm.proxy(history_jyl, "history"),
-        sessionStorage: dtavm.proxy(sessionStorage_jyl, "sessionStorage"),
-        localStorage: dtavm.proxy(localStorage_jyl, "localStorage"),
-        location: location_jyl, //dtavm.proxy(location_jyl, "location"),
-        indexedDB: dtavm.proxy(indexedDB_jyl, "indexedDB"),
-        crypto: dtavm.proxy(crypto_jyl, "crypto"),
-    }
-
-    globalThis = dtavm.proxy(window_jyl, "globalThis")
-    Object.defineProperties(globalThis, {
-        'window': {
-            configurable: false,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["window"]
-            },
-            set: undefined
-        },
-        'self': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["window"]
-            },
-            set: function set() {
-                debuggee;
-            }
-        },
-        'top': {
-            configurable: false,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["window"]
-            },
-            set: undefined
-        },
-        'parent': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["window"]
-            },
-            set: function set() {
-                debuggee;
-            }
-        },
-        'frames': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["window"]
-            },
-            set: function set() {
-                debuggee;
-            }
-        },
-        'screen': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["screen"]
-            },
-            set: function set() {
-                debuggee;
-            }
-        },
-        'performance': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["performance"]
-            },
-            set: function set() {
-                debuggee;
-            }
-        },
-        'document': {
-            configurable: false,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["document"]
-            },
-            set: undefined
-        },
-        'navigator': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["navigator"]
-            },
-            set: undefined
-        },
-        'history': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["history"]
-            },
-            set: undefined
-        },
-        'sessionStorage': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["sessionStorage"]
-            },
-            set: undefined
-        },
-        'localStorage': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["localStorage"]
-            },
-            set: undefined
-        },
-        'location': {
-            configurable: false,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["location"]
-            },
-            set: function set() {
-                debuggee;
-            }
-        },
-        'indexedDB': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["indexedDB"]
-            },
-            set: undefined
-        },
-        'crypto': {
-            configurable: true,
-            enumerable: true,
-            get: function get() {
-                return dtavm.proxy_map["crypto"]
-            },
-            set: undefined
-        },
-    })
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["window"].get, "get window");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["self"].get, "get self");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["self"].set, "set self");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["top"].get, "get top");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["parent"].get, "get parent");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["parent"].set, "set parent");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["frames"].get, "get frames");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["frames"].set, "set frames");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["screen"].get, "get screen");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["screen"].set, "set screen");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["performance"].get, "get performance");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["performance"].set, "set performance");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["document"].get, "get document");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["navigator"].get, "get navigator");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["history"].get, "get history");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["sessionStorage"].get, "get sessionStorage");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["localStorage"].get, "get localStorage");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["location"].get, "get location");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["location"].set, "set location");
-
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["indexedDB"].get, "get indexedDB");
-    dtavm.func_set_native(Object.getOwnPropertyDescriptors(globalThis)["crypto"].get, "get crypto");
 }
 dtavm.iframe_proxy_start = function iframe_proxy_start() {
     function defineProperty(obj, key, value, configurable, enumerable, writable, getter, setter) {

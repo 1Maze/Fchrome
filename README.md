@@ -1,5 +1,13 @@
 - # Fchrome
-    - `Fchrome`是一款对chromium源码进行定制的浏览器,支持爬虫/JS逆向工程师进行辅助分析网页
+    - `Fchrome`是一款对chromium源码进行定制的浏览器,支持爬虫/JS逆向工程师进行辅助分析网页 
+      - 主要功能
+        - 1.~~浏览器指纹随机~~
+          - 考虑法律风险 已经弃用 不再更新
+        - 2.浏览器自吐模块
+          - 功能
+            - 监控js代码调用环境的过程
+            - 分析调用日志，配合沙箱（类似nodejs本地补环境调用）进行快速补环境，不走错误分支
+            - 最终实现黑盒调用算法
     - ## ~~浏览器随机指纹模块(没有给出编译后的成品)~~
         - ### 实现功能：
         ```
@@ -40,7 +48,7 @@
         parent
         navigator
         document
-        location （在js代码中去掉了 因为toString等方法无法覆盖写会报错）
+        location
         history
         screen
         localStorage
@@ -49,6 +57,8 @@
         indexedDB
         crypto
         ```
+        - #### 插件配置页面展示
+          ![screenshot](imgs/extension7.png) 
         - #### 全局函数监控(实验中)
           ![screenshot](imgs/function2.png)
         - ### 原理简介
@@ -56,7 +66,7 @@
             - 对debugger关键字替换为debuggee 无视无限debugger
         - ### 源码
             - diff文件在monitor_change_code文件夹下
-        - ### 使用方法1(方法2为一键启动)
+        - ### 使用方法1(推荐方法2为一键启动)
           - 在浏览器控制台中执行proxy.js的代码(推荐在JS最先执行的时机断点（事件侦听器断点->脚本->脚本的第一条语句）然后运行js代码，最先取得全局对象的控制权)
           - 然后在网页上正常操作即可在控制台得到打印的对象信息，进行环境监控，辅助JS补环境
         - #### 图片教学
@@ -79,13 +89,11 @@
           - 监控成功
             - ![screenshot](imgs/extension6.png) 
         - ### 关于iframe中的对象代理
-          - 参考iframe_proxy.js的代码即可完美监控iframe中的contentWindow和contentDocument（注入时机和proxy.js相同 先执行proxy.js）
+          - 通过插件即可监控多个iframe(还没有对iframe内的window代理只对top中的contentWindow和countDocument代理)
             - ![screenshot](imgs/iframe1.png)
             - ![screenshot](imgs/iframe2.png)
         - #### 插件启动iframe代理
-          - 可能和v_jstools一起hook有冲突
             - ![screenshot](imgs/iframe_extension1.png)
-            - ![screenshot](imgs/iframe_extension2.png)
         - #### 插件启动全局函数代理（实验中）
           - ![screenshot](imgs/function1.png)
           - ![screenshot](imgs/function2.png)
@@ -98,22 +106,23 @@
                 - 安装包
                     - mini_installer.exe 直接安装(适用于有管理员权限的电脑)
         - ### Tips
-            - 碰到报错的方法或无法打印的对象(报错的)可以在proxy.js代码中进行过滤
-            - 安装油猴会导致上述最早注入的时机不好找，因为会先加载油猴的环境并没有进入到目标代码跑的环境
-            - 碰到在iframe中js加解密的网页注入时机应该选择在iframe标签创建完成并加入到document.body的时候
-            - 结合 https://github.com/cilame/v_jstools 一起分析会有奇效
+            - 碰到报错的方法或无法打印的对象(报错的) 手动在/extension/tools/proxy.js代码中进行过滤
+            - 如果需要手动注入时:安装油猴会导致上述最早注入的时机不好找，因为会先加载油猴的环境并没有进入到目标代码跑的环境
+            - 手动注入的proxy.js没有更新 最好使用插件进行hook 如果无法满足最早时机 请手动更新一下
+            - 结合 https://github.com/cilame/v_jstools 中的对象原型链getset hook 一起分析会有奇效 可以同时安装使用2个插件
         
         - ### 建议
-          - 问题中可以提还需要监控哪些全局对象（原型链的监控v_jstools已经写了很多） 作者有空会去改 随缘发布新版
+          - 遇到报错和bug可以提Issues 看到会回复解决
 
 - # 后续更新方向
   - todo
     - ~~js hook的代码制作成chrome插件一键启动！~~
-    - 直接内置v_jstools的监控避免冲突
-    - 自定义console.log 并去掉原始的console.log 防止控制台/cdp检测 和 console.log被抹去或被console.clear清掉日志（目前通过js hook方式去实现）
+    - ~~直接内置v_jstools的监控避免冲突~~
+    - 一键导出调用的环境 一键补环境 (耗时较久 难肝)
+    - 自定义console.log 并去掉原始的console.log 防止控制台/cdp检测 和 console.log被抹去或被console.clear清掉日志（目前通过js hook方式去实现 暂不更新）
     - 更新其他全局对象监控
 
-- # 联系我们
-    - #### 作者v: lenganlan
+- # 联系作者&&商务合作
+  - ## wx: lenganlan
 
 - # 感谢支持!!

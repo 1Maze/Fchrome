@@ -88,31 +88,6 @@
       right: 0;
     }
 
-    .button2 {
-      display: inline-block;
-      padding: 10px;
-      font-size: 15px;
-      cursor: pointer;
-      text-align: center;   
-      text-decoration: none;
-      outline: none;
-      width: 160px;
-      transition: all 0.5s;
-      margin: 5px;
-      color: #fff;
-      background-color: #0000FF;
-      border: none;
-      border-radius: 4px;
-      box-shadow: 0 3px #999;
-    }
-
-    .button2:hover {background-color: #b62f04}
-
-    .button2:active {
-      background-color: #3e8e41;
-      box-shadow: 0 5px #666;
-      transform: translateY(4px);
-    }
     </style>
 
 </head>
@@ -131,6 +106,11 @@
     <input type="checkbox" data-key="config-function-proxy-hook"><div class="slider"></div>
   </label>
   <div style="float: right; padding: 10px">是否开启function代理</div>
+
+  <div>
+    <button id="showoptions" class="button" style="vertical-align:middle"><span>打开配置页面</span></button>
+    <button id="ast_page" class="button" style="vertical-align:middle"><span>ast工具页面</span></button>
+  </div>
 
   <script src="popup.js"></script>
 </body>
